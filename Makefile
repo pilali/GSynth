@@ -1,13 +1,13 @@
-# GSynth EH Micro Synthesizer - LV2 plug-in
+# GSynth — LV2 plug-in
 #
 # Build local :          make
 # Build cross (MOD)  :   make CC=$(TARGET_CC) avec PKG_CONFIG_PATH visant
 #                        le sysroot ; mod-plugin-builder fournit déjà ces vars.
 # Installation :         make install [DESTDIR=...] [PREFIX=/usr] [LV2DIR=...]
-# Pour MOD (Buildroot) : cp -rL eh_micro_synth.lv2 $(TARGET_DIR)/usr/lib/lv2/
+# Pour MOD (Buildroot) : cp -rL gsynth.lv2 $(TARGET_DIR)/usr/lib/lv2/
 
-BUNDLE := eh_micro_synth.lv2
-PLUGIN := eh_micro_synth
+BUNDLE := gsynth.lv2
+PLUGIN := gsynth
 SO     := $(BUNDLE)/$(PLUGIN).so
 
 CC ?= cc
@@ -34,11 +34,11 @@ $(BUNDLE):
 	mkdir -p $@
 
 smoke: $(SO)
-	$(CC) -O2 -Wall src/smoke_test.c -ldl -lm -o /tmp/ehms_smoke
-	/tmp/ehms_smoke $(SO)
+	$(CC) -O2 -Wall src/smoke_test.c -ldl -lm -o /tmp/gsynth_smoke
+	/tmp/gsynth_smoke $(SO)
 
 clean:
-	rm -f $(SO) /tmp/ehms_smoke
+	rm -f $(SO) /tmp/gsynth_smoke
 
 install: all
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)

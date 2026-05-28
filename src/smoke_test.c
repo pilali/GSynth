@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {
-    const char* path = argc > 1 ? argv[1] : "eh_micro_synth.lv2/eh_micro_synth.so";
+    const char* path = argc > 1 ? argv[1] : "gsynth.lv2/gsynth.so";
     void* h = dlopen(path, RTLD_NOW);
     if (!h) { fprintf(stderr, "dlopen: %s\n", dlerror()); return 1; }
 
@@ -32,6 +32,7 @@ int main(int argc, char** argv)
     float atk_ms = 5.0f, start_hz = 200.0f, stop_hz = 3000.0f;
     float res = 0.4f, rate = 0.5f, trig = 0.6f;
     float filter_type, pitch_track;
+    float input_drive = 0.3f;
 
     d->connect_port(inst,  0, in);
     d->connect_port(inst,  1, out);
@@ -47,27 +48,33 @@ int main(int argc, char** argv)
     d->connect_port(inst, 11, &trig);
     d->connect_port(inst, 12, &filter_type);
     d->connect_port(inst, 13, &pitch_track);
+    d->connect_port(inst, 14, &input_drive);
 
-    /* Exerce les 4 combinaisons (SVF/Moog) x (Schmitt/YIN) */
+    /* Exerce les 4 combinaisons (SVF/Moog) x (Schmitt/YIN) à 3 niveaux de drive */
     int all_finite = 1;
-    for (int mode = 0; mode < 4; ++mode) {
-        filter_type = (float)((mode >> 0) & 1);
-        pitch_track = (float)((mode >> 1) & 1);
+    const float drive_levels[3] = { 0.0f, 0.3f, 1.0f };
+    for (int dl = 0; dl < 3; ++dl) {
+        input_drive = drive_levels[dl];
+        for (int mode = 0; mode < 4; ++mode) {
+            filter_type = (float)((mode >> 0) & 1);
+            pitch_track = (float)((mode >> 1) & 1);
 
-        d->activate(inst);
-        d->run(inst, N);
-        d->deactivate(inst);
+            d->activate(inst);
+            d->run(inst, N);
+            d->deactivate(inst);
 
-        double peak = 0, rms = 0; int finite = 1;
-        for (uint32_t i = 0; i < N; ++i) {
-            if (!isfinite(out[i])) { finite = 0; break; }
-            float a = fabsf(out[i]); if (a > peak) peak = a;
-            rms += out[i] * out[i];
+            double peak = 0, rms = 0; int finite = 1;
+            for (uint32_t i = 0; i < N; ++i) {
+                if (!isfinite(out[i])) { finite = 0; break; }
+                float a = fabsf(out[i]); if (a > peak) peak = a;
+                rms += out[i] * out[i];
+            }
+            rms = sqrt(rms / N);
+            printf("drive=%.1f filter=%d pitch=%d  finite=%d  peak=%.4f  rms=%.4f\n",
+                   input_drive, (int)filter_type, (int)pitch_track,
+                   finite, peak, rms);
+            if (!finite) all_finite = 0;
         }
-        rms = sqrt(rms / N);
-        printf("mode filter=%d pitch=%d  finite=%d  peak=%.4f  rms=%.4f\n",
-               (int)filter_type, (int)pitch_track, finite, peak, rms);
-        if (!finite) all_finite = 0;
     }
 
     d->cleanup(inst);

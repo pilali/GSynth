@@ -5,9 +5,9 @@
 @prefix units:  <http://lv2plug.in/ns/extensions/units#> .
 @prefix modgui: <http://moddevices.com/ns/modgui#> .
 
-<https://github.com/pilali/gsynth/eh-micro-synth>
+<https://github.com/pilali/gsynth/plugin>
     a lv2:Plugin , lv2:FilterPlugin ;
-    doap:name "GSynth EH Micro Synthesizer" ;
+    doap:name "GSynth" ;
     doap:license <https://opensource.org/licenses/MIT> ;
     lv2:project <https://github.com/pilali/gsynth> ;
     lv2:optionalFeature lv2:hardRTCapable ;
@@ -105,18 +105,24 @@
         lv2:portProperty lv2:integer , lv2:enumeration , lv2:toggled ;
         lv2:scalePoint [ rdfs:label "Schmitt + Flip-Flops" ; rdf:value 0 ] ;
         lv2:scalePoint [ rdfs:label "YIN (CPU heavier)" ; rdf:value 1 ]
+    ] , [
+        a lv2:ControlPort , lv2:InputPort ;
+        lv2:index 14 ;
+        lv2:symbol "input_drive" ;
+        lv2:name "Input Drive" ;
+        lv2:default 0.25 ; lv2:minimum 0.0 ; lv2:maximum 1.0
     ] ;
 
     modgui:gui [
         modgui:resourcesDirectory <modgui> ;
-        modgui:iconTemplate       <modgui/icon-eh-micro-synth.html> ;
-        modgui:stylesheet         <modgui/stylesheet-eh-micro-synth.css> ;
-        modgui:screenshot         <modgui/screenshot-eh-micro-synth.png> ;
-        modgui:thumbnail          <modgui/thumbnail-eh-micro-synth.png> ;
+        modgui:iconTemplate       <modgui/icon-gsynth.html> ;
+        modgui:stylesheet         <modgui/stylesheet-gsynth.css> ;
+        modgui:screenshot         <modgui/screenshot-gsynth.png> ;
+        modgui:thumbnail          <modgui/thumbnail-gsynth.png> ;
         modgui:brand              "GSynth" ;
-        modgui:label              "EH Micro Synth" ;
-        modgui:model              "Micro Synthesizer" ;
-        modgui:panel              "ehms" ;
+        modgui:label              "Guitar Synth" ;
+        modgui:model              "Voice + Filter" ;
+        modgui:panel              "gsynth" ;
         modgui:color              "cream" ;
         modgui:knob               "black" ;
         modgui:port [
@@ -167,5 +173,9 @@
             lv2:index 13 ;
             lv2:symbol "pitch_track" ;
             lv2:name "Pitch"
+        ] , [
+            lv2:index 14 ;
+            lv2:symbol "input_drive" ;
+            lv2:name "Drive"
         ]
     ] .

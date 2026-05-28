@@ -1,23 +1,24 @@
 /*
- * GSynth EH Micro Synthesizer - LV2 plug-in
+ * GSynth — LV2 plug-in guitar synth (subharmonic generator + filter sweep)
  *
- * Modélisation digitale fonctionnelle de la pédale Electro-Harmonix
- * Micro Synthesizer.
+ * Architecture (réplique fonctionnelle d'une chaîne classique de synth
+ * guitare analogique : étage d'entrée à JFET, voix générées par flip-flops
+ * diviseurs ou suivi de hauteur, sweep d'enveloppe vers un VCF résonant) :
  *
- * Sections :
  *   - DC-blocker
+ *   - Saturation FET d'entrée (asymétrique, JFET-style)
  *   - Envelope follower (peak detector A/R)
  *   - Trigger detector à hystérésis
- *   - Squarer = Schmitt trigger (à la hauteur)
- *   - Flip-flops T diviseurs /2 et /4 -> OCTAVE et SUB OCTAVE
+ *   - Squarer = Schmitt trigger -> voie SQUARE WAVE (à la hauteur)
+ *   - Flip-flops T diviseurs /2 et /4 -> OCTAVE (-1) et SUB OCTAVE (-2)
  *     (utilisés si pitch_track = 0)
- *   - YIN-style pitch tracker (analyse par hop) + oscillateurs carrés
- *     synthétiques pour SQUARE / OCTAVE / SUB OCTAVE (si pitch_track = 1)
- *   - Sweep generator : Attack Delay puis rampe linéaire vers Stop
- *   - Filtre VCF passe-bas, deux topologies sélectionnables :
+ *   - YIN-style pitch tracker + oscillateurs carrés synchronisés
+ *     (si pitch_track = 1)
+ *   - Sweep generator : Attack Delay puis rampe vers Stop
+ *   - VCF passe-bas, deux topologies :
  *       * SVF TPT (Zavalishin) — propre, neutre
- *       * Moog ladder (Stilson-Smith style) — 24 dB/oct, saturation tanh
- *   - Mixeur final + soft-clipper
+ *       * Moog ladder (Stilson/Smith) — 24 dB/oct, saturation tanh
+ *   - Mixeur final + soft-clipper de sortie
  */
 
 #include <lv2/core/lv2.h>
@@ -32,7 +33,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define EHMS_URI "https://github.com/pilali/gsynth/eh-micro-synth"
+#define GSYNTH_URI "https://github.com/pilali/gsynth/plugin"
 
 #define YIN_THRESHOLD 0.12f
 #define YIN_F_MIN_HZ   60.0f
@@ -53,7 +54,8 @@ typedef enum {
     PORT_FILTER_RATE  = 10,
     PORT_TRIGGER      = 11,
     PORT_FILTER_TYPE  = 12,
-    PORT_PITCH_TRACK  = 13
+    PORT_PITCH_TRACK  = 13,
+    PORT_INPUT_DRIVE  = 14
 } PortIndex;
 
 typedef struct {
@@ -72,6 +74,7 @@ typedef struct {
     const float* p_trigger;
     const float* p_filter_type;
     const float* p_pitch_track;
+    const float* p_input_drive;
 
     double sr;
 
@@ -116,7 +119,7 @@ typedef struct {
     float phase_pitch;
     float phase_sub;
     float phase_sub2;
-} EHMS;
+} GSynth;
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                    */
@@ -136,6 +139,35 @@ static inline float fast_tanh(float x)
     return x * (27.0f + x2) / (27.0f + 9.0f * x2);
 }
 
+/* Saturation type JFET common-source self-biased.
+ *
+ *   - gain de pré-saturation 1..4x suivant `drive`
+ *   - bias additif avant tanh → asymétrie : l'arche positive compresse
+ *     plus tôt (côté Idss), l'arche négative est légèrement raidie
+ *     (côté cutoff)
+ *   - normalisation pour conserver un gain petit-signal ≈ 1, de sorte que
+ *     `drive` ne fait qu'augmenter la quantité de coloration, pas le niveau
+ *
+ *   drive = 0  → bypass strict
+ *   drive = 1  → overdrive net, harmoniques paires marquées
+ */
+static inline float fet_saturate(float x, float drive)
+{
+    if (drive <= 1e-4f) return x;
+
+    const float pre  = 1.0f + drive * 3.0f;
+    const float bias = 0.20f * drive;
+
+    float pre_x = pre * x;
+    if (pre_x < 0.0f) pre_x *= 1.10f;        /* asymétrie côté cutoff */
+
+    float y = fast_tanh(pre_x + bias) - fast_tanh(bias);
+
+    float th_b = fast_tanh(bias);
+    float k    = 1.0f / (pre * (1.0f - th_b * th_b));
+    return y * k;
+}
+
 static uint32_t next_pow2(uint32_t v)
 {
     uint32_t p = 1;
@@ -147,7 +179,7 @@ static uint32_t next_pow2(uint32_t v)
 /* YIN pitch tracker                                                          */
 /* -------------------------------------------------------------------------- */
 
-static void yin_process(EHMS* self, float x)
+static void yin_process(GSynth* self, float x)
 {
     self->yin_buf[self->yin_pos] = x;
     self->yin_pos = (self->yin_pos + 1) & self->yin_buf_mask;
@@ -160,13 +192,11 @@ static void yin_process(EHMS* self, float x)
     const uint32_t tau_max = self->yin_tau_max;
     const uint32_t span    = W + tau_max;
 
-    /* Linéarise les "span" derniers samples dans yin_work pour un accès rapide */
     uint32_t start = (self->yin_pos + self->yin_buf_size - span) & self->yin_buf_mask;
     for (uint32_t k = 0; k < span; ++k) {
         self->yin_work[k] = self->yin_buf[(start + k) & self->yin_buf_mask];
     }
 
-    /* Fonction de différence d(τ) = Σ (x[j] − x[j+τ])²  sur j∈[0,W) */
     for (uint32_t tau = tau_min; tau <= tau_max; ++tau) {
         float sum = 0.0f;
         const float* a = self->yin_work;
@@ -178,7 +208,6 @@ static void yin_process(EHMS* self, float x)
         self->yin_d[tau] = sum;
     }
 
-    /* CMNDF — normalisation cumulative */
     self->yin_d[0] = 1.0f;
     float running = 0.0f;
     for (uint32_t tau = 1; tau <= tau_max; ++tau) {
@@ -189,7 +218,6 @@ static void yin_process(EHMS* self, float x)
             self->yin_d[tau] = 1.0f;
     }
 
-    /* Recherche du premier minimum sous le seuil */
     uint32_t best = 0;
     for (uint32_t tau = tau_min; tau < tau_max; ++tau) {
         if (self->yin_d[tau] < YIN_THRESHOLD) {
@@ -205,7 +233,6 @@ static void yin_process(EHMS* self, float x)
         return;
     }
 
-    /* Interpolation parabolique pour précision sub-sample */
     float y0 = self->yin_d[best - 1];
     float y1 = self->yin_d[best];
     float y2 = self->yin_d[best + 1];
@@ -217,7 +244,6 @@ static void yin_process(EHMS* self, float x)
 
     float new_f0 = (float)self->sr / refined;
 
-    /* Garde-fou : rejette les sauts d'octave aberrants */
     if (self->yin_voiced) {
         float ratio = new_f0 / self->yin_f0;
         if (ratio > 1.9f && ratio < 2.1f) new_f0 *= 0.5f;
@@ -232,22 +258,18 @@ static void yin_process(EHMS* self, float x)
 /* Moog ladder (Stilson/Smith)                                                */
 /* -------------------------------------------------------------------------- */
 
-static inline float moog_ladder_process(EHMS* self, float x,
+static inline float moog_ladder_process(GSynth* self, float x,
                                         float cutoff_hz, float resonance)
 {
     float fc_norm = 2.0f * cutoff_hz / (float)self->sr;
     if (fc_norm > 0.96f) fc_norm = 0.96f;
 
-    /* g : coefficient de chaque pôle */
     float g  = 1.0f - expf(-2.0f * (float)M_PI * cutoff_hz / (float)self->sr);
 
-    /* compensation de la résonance vs la coupure */
     float fb = resonance * 4.0f * (1.0f - 0.15f * fc_norm * fc_norm);
 
-    /* entrée avec feedback saturé */
     float input = x - fast_tanh(fb * self->ladder_y[3]);
 
-    /* 4 cellules une-pôle avec saturation douce */
     self->ladder_y[0] += g * (fast_tanh(input)              - fast_tanh(self->ladder_y[0]));
     self->ladder_y[1] += g * (fast_tanh(self->ladder_y[0]) - fast_tanh(self->ladder_y[1]));
     self->ladder_y[2] += g * (fast_tanh(self->ladder_y[1]) - fast_tanh(self->ladder_y[2]));
@@ -260,7 +282,7 @@ static inline float moog_ladder_process(EHMS* self, float x,
 /* SVF (TPT Zavalishin), passe-bas                                            */
 /* -------------------------------------------------------------------------- */
 
-static inline float svf_lp_process(EHMS* self, float x,
+static inline float svf_lp_process(GSynth* self, float x,
                                    float cutoff_hz, float Q)
 {
     float g  = tanf((float)M_PI * cutoff_hz / (float)self->sr);
@@ -289,7 +311,7 @@ instantiate(const LV2_Descriptor* descriptor,
 {
     (void)descriptor; (void)bundle_path; (void)features;
 
-    EHMS* self = (EHMS*)calloc(1, sizeof(EHMS));
+    GSynth* self = (GSynth*)calloc(1, sizeof(GSynth));
     if (!self) return NULL;
 
     self->sr = rate;
@@ -330,7 +352,7 @@ instantiate(const LV2_Descriptor* descriptor,
 static void
 connect_port(LV2_Handle instance, uint32_t port, void* data)
 {
-    EHMS* self = (EHMS*)instance;
+    GSynth* self = (GSynth*)instance;
     switch ((PortIndex)port) {
         case PORT_IN:           self->in             = (const float*)data; break;
         case PORT_OUT:          self->out            = (float*)data;       break;
@@ -346,13 +368,14 @@ connect_port(LV2_Handle instance, uint32_t port, void* data)
         case PORT_TRIGGER:      self->p_trigger      = (const float*)data; break;
         case PORT_FILTER_TYPE:  self->p_filter_type  = (const float*)data; break;
         case PORT_PITCH_TRACK:  self->p_pitch_track  = (const float*)data; break;
+        case PORT_INPUT_DRIVE:  self->p_input_drive  = (const float*)data; break;
     }
 }
 
 static void
 activate(LV2_Handle instance)
 {
-    EHMS* self = (EHMS*)instance;
+    GSynth* self = (GSynth*)instance;
     self->dc_x1 = self->dc_y1 = 0.0f;
     self->env   = 0.0f;
     self->triggered = 0;
@@ -375,7 +398,7 @@ activate(LV2_Handle instance)
 static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
-    EHMS* self = (EHMS*)instance;
+    GSynth* self = (GSynth*)instance;
 
     const float* const in  = self->in;
     float*       const out = self->out;
@@ -392,8 +415,9 @@ run(LV2_Handle instance, uint32_t n_samples)
     const float rate_param = clampf(*self->p_filter_rate, 0.0f, 1.0f);
     const float trig_sens  = clampf(*self->p_trigger,    0.0f, 1.0f);
 
-    const int   filter_type = (*self->p_filter_type > 0.5f) ? 1 : 0; /* 0=SVF, 1=Moog */
+    const int   filter_type = (*self->p_filter_type > 0.5f) ? 1 : 0;
     const int   pitch_track = (*self->p_pitch_track > 0.5f) ? 1 : 0;
+    const float input_drive = clampf(*self->p_input_drive, 0.0f, 1.0f);
 
     const float sr = (float)self->sr;
     const float dt = 1.0f / sr;
@@ -422,6 +446,9 @@ run(LV2_Handle instance, uint32_t n_samples)
         self->dc_y1 = y_dc;
         x = y_dc;
 
+        /* saturation FET d'entrée (tout l'aval voit le signal coloré) */
+        x = fet_saturate(x, input_drive);
+
         /* envelope follower */
         float ax = fabsf(x);
         if (ax > self->env)
@@ -439,18 +466,16 @@ run(LV2_Handle instance, uint32_t n_samples)
             self->triggered = 0;
         }
 
-        /* --- voies synthétiques --- */
+        /* voies synthétiques */
         float sq, d2, d4;
 
         if (pitch_track) {
             yin_process(self, x);
 
-            /* lissage du F0 estimé */
             if (self->yin_voiced) {
                 self->yin_f0_smoothed += 0.05f * (self->yin_f0 - self->yin_f0_smoothed);
             }
 
-            /* oscillateurs carrés synchros sur F0 */
             float f0 = self->yin_f0_smoothed;
             if (f0 < 30.0f) f0 = 30.0f;
 
@@ -467,7 +492,6 @@ run(LV2_Handle instance, uint32_t n_samples)
             d2 = (self->phase_sub   < 0.5f) ?  1.0f : -1.0f;
             d4 = (self->phase_sub2  < 0.5f) ?  1.0f : -1.0f;
         } else {
-            /* Schmitt + flip-flops */
             float schmitt_th = 0.10f * self->env + 1e-4f;
             if (self->sq_state > 0.0f) {
                 if (x < -schmitt_th) self->sq_state = -1.0f;
@@ -487,13 +511,11 @@ run(LV2_Handle instance, uint32_t n_samples)
             d4 = self->div4_state;
         }
 
-        /* gate par enveloppe pour silencier les voix synthé au repos */
         float gate = clampf(self->env * 12.0f, 0.0f, 1.0f);
         sq *= gate;
         d2 *= gate;
         d4 *= gate;
 
-        /* sweep envelope */
         if (self->triggered) {
             if (self->delay_samples > 0) self->delay_samples--;
             else self->sweeping = 1;
@@ -506,19 +528,16 @@ run(LV2_Handle instance, uint32_t n_samples)
             }
         }
 
-        /* cutoff balayé */
         float cutoff = expf(log_start + self->sweep * (log_stop - log_start));
         if (cutoff > nyquist_clip) cutoff = nyquist_clip;
         if (cutoff < 20.0f) cutoff = 20.0f;
 
-        /* mixage avant filtre */
         float mix = v_guitar * x
                   + v_sq     * sq
                   + v_oct    * d2
                   + v_sub    * d4;
         mix *= 0.5f;
 
-        /* filtre */
         float filtered;
         if (filter_type == 1) {
             filtered = moog_ladder_process(self, mix, cutoff, res);
@@ -526,7 +545,6 @@ run(LV2_Handle instance, uint32_t n_samples)
             filtered = svf_lp_process(self, mix, cutoff, Q);
         }
 
-        /* soft clip de sortie */
         float o = filtered;
         if (o >  1.5f) o =  1.5f;
         if (o < -1.5f) o = -1.5f;
@@ -540,7 +558,7 @@ static void deactivate(LV2_Handle instance) { (void)instance; }
 
 static void cleanup(LV2_Handle instance)
 {
-    EHMS* self = (EHMS*)instance;
+    GSynth* self = (GSynth*)instance;
     if (self) {
         free(self->yin_buf);
         free(self->yin_d);
@@ -552,7 +570,7 @@ static void cleanup(LV2_Handle instance)
 static const void* extension_data(const char* uri) { (void)uri; return NULL; }
 
 static const LV2_Descriptor descriptor = {
-    EHMS_URI,
+    GSYNTH_URI,
     instantiate,
     connect_port,
     activate,
