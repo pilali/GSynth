@@ -14,7 +14,7 @@
 #
 ################################################################################
 
-EH_MICRO_SYNTH_VERSION = 6ed9c211068166170d3e599c0a649a2c7a15b895
+EH_MICRO_SYNTH_VERSION = fdb35853d53e1ae1594072a3b59c6f3c969eec40
 EH_MICRO_SYNTH_SITE = $(call github,pilali,GSynth,$(EH_MICRO_SYNTH_VERSION))
 EH_MICRO_SYNTH_SITE_METHOD = git
 EH_MICRO_SYNTH_BUNDLES = eh_micro_synth.lv2
