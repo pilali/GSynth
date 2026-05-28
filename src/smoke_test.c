@@ -31,6 +31,7 @@ int main(int argc, char** argv)
     float guitar = 0.7f, oct = 0.6f, sub = 0.6f, sq = 0.4f;
     float atk_ms = 5.0f, start_hz = 200.0f, stop_hz = 3000.0f;
     float res = 0.4f, rate = 0.5f, trig = 0.6f;
+    float filter_type, pitch_track;
 
     d->connect_port(inst,  0, in);
     d->connect_port(inst,  1, out);
@@ -44,21 +45,32 @@ int main(int argc, char** argv)
     d->connect_port(inst,  9, &res);
     d->connect_port(inst, 10, &rate);
     d->connect_port(inst, 11, &trig);
+    d->connect_port(inst, 12, &filter_type);
+    d->connect_port(inst, 13, &pitch_track);
 
-    d->activate(inst);
-    d->run(inst, N);
-    d->deactivate(inst);
-    d->cleanup(inst);
+    /* Exerce les 4 combinaisons (SVF/Moog) x (Schmitt/YIN) */
+    int all_finite = 1;
+    for (int mode = 0; mode < 4; ++mode) {
+        filter_type = (float)((mode >> 0) & 1);
+        pitch_track = (float)((mode >> 1) & 1);
 
-    int finite = 1; double peak = 0, rms = 0;
-    for (uint32_t i = 0; i < N; ++i) {
-        if (!isfinite(out[i])) { finite = 0; break; }
-        float a = fabsf(out[i]); if (a > peak) peak = a;
-        rms += out[i] * out[i];
+        d->activate(inst);
+        d->run(inst, N);
+        d->deactivate(inst);
+
+        double peak = 0, rms = 0; int finite = 1;
+        for (uint32_t i = 0; i < N; ++i) {
+            if (!isfinite(out[i])) { finite = 0; break; }
+            float a = fabsf(out[i]); if (a > peak) peak = a;
+            rms += out[i] * out[i];
+        }
+        rms = sqrt(rms / N);
+        printf("mode filter=%d pitch=%d  finite=%d  peak=%.4f  rms=%.4f\n",
+               (int)filter_type, (int)pitch_track, finite, peak, rms);
+        if (!finite) all_finite = 0;
     }
-    rms = sqrt(rms / N);
-    printf("finite=%d  peak=%.4f  rms=%.4f\n", finite, peak, rms);
 
+    d->cleanup(inst);
     free(in); free(out); dlclose(h);
-    return finite ? 0 : 2;
+    return all_finite ? 0 : 2;
 }

@@ -1,12 +1,26 @@
+# GSynth EH Micro Synthesizer - LV2 plug-in
+#
+# Build local :          make
+# Build cross (MOD)  :   make CC=$(TARGET_CC) avec PKG_CONFIG_PATH visant
+#                        le sysroot ; mod-plugin-builder fournit déjà ces vars.
+# Installation :         make install [DESTDIR=...] [PREFIX=/usr] [LV2DIR=...]
+# Pour MOD (Buildroot) : cp -rL eh_micro_synth.lv2 $(TARGET_DIR)/usr/lib/lv2/
+
 BUNDLE := eh_micro_synth.lv2
 PLUGIN := eh_micro_synth
 SO     := $(BUNDLE)/$(PLUGIN).so
 
-CC       ?= cc
-CFLAGS   ?= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LV2_CFLAGS := $(shell pkg-config --cflags lv2)
-LDFLAGS  ?= -shared -fvisibility=hidden
-LDLIBS   ?= -lm
+CC ?= cc
+PKG_CONFIG ?= pkg-config
+
+OPTFLAGS ?= -O2 -ffast-math
+
+# Append-only : on respecte les CFLAGS/LDFLAGS injectés par l'environnement
+# (mod-plugin-builder, Buildroot, etc.) tout en ajoutant nos besoins.
+override CFLAGS  += $(OPTFLAGS) -fPIC -Wall -Wextra -Wno-unused-parameter \
+                    $(shell $(PKG_CONFIG) --cflags lv2)
+override LDFLAGS += -shared -fvisibility=hidden
+LDLIBS ?= -lm
 
 PREFIX ?= /usr/local
 LV2DIR ?= $(PREFIX)/lib/lv2
@@ -14,7 +28,7 @@ LV2DIR ?= $(PREFIX)/lib/lv2
 all: $(SO)
 
 $(SO): src/$(PLUGIN).c | $(BUNDLE)
-	$(CC) $(CFLAGS) $(LV2_CFLAGS) $(LDFLAGS) -o $@ $< $(LDLIBS)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
 
 $(BUNDLE):
 	mkdir -p $@
@@ -28,8 +42,8 @@ clean:
 
 install: all
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)
-	install -m 644 $(BUNDLE)/manifest.ttl       $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
-	install -m 644 $(BUNDLE)/$(PLUGIN).ttl      $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
-	install -m 755 $(BUNDLE)/$(PLUGIN).so       $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+	install -m 644 $(BUNDLE)/manifest.ttl  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+	install -m 644 $(BUNDLE)/$(PLUGIN).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+	install -m 755 $(BUNDLE)/$(PLUGIN).so  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 
 .PHONY: all clean install smoke
