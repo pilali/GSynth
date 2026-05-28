@@ -427,8 +427,11 @@ run(LV2_Handle instance, uint32_t n_samples)
 
     const int delay_init = (int)(attack_ms * 0.001f * sr);
 
-    const float trig_on  = 0.005f + (1.0f - trig_sens) * 0.30f;
-    const float trig_off = trig_on * 0.35f;
+    /* Quadratic taper: wide, usable range across the full slider travel.
+       At sens=1.0: ~0.1 mFS; at sens=0.5: ~25 mFS; at sens=0.0: ~100 mFS. */
+    float _k = (1.0f - trig_sens);
+    const float trig_on  = 1e-4f + _k * _k * 0.10f;
+    const float trig_off = trig_on * 0.40f;
 
     const float log_start = logf(start_hz);
     const float log_stop  = logf(stop_hz);
@@ -532,20 +535,18 @@ run(LV2_Handle instance, uint32_t n_samples)
         if (cutoff > nyquist_clip) cutoff = nyquist_clip;
         if (cutoff < 20.0f) cutoff = 20.0f;
 
-        float mix = v_guitar * x
-                  + v_sq     * sq
-                  + v_oct    * d2
-                  + v_sub    * d4;
-        mix *= 0.5f;
+        /* Synth voices go through the filter; guitar is added dry after,
+           so it stays audible regardless of filter sweep position. */
+        float synth_mix = (v_sq * sq + v_oct * d2 + v_sub * d4) * 0.5f;
 
         float filtered;
         if (filter_type == 1) {
-            filtered = moog_ladder_process(self, mix, cutoff, res);
+            filtered = moog_ladder_process(self, synth_mix, cutoff, res);
         } else {
-            filtered = svf_lp_process(self, mix, cutoff, Q);
+            filtered = svf_lp_process(self, synth_mix, cutoff, Q);
         }
 
-        float o = filtered;
+        float o = filtered + v_guitar * x * 0.5f;
         if (o >  1.5f) o =  1.5f;
         if (o < -1.5f) o = -1.5f;
         o = o - (o * o * o) * (1.0f / 3.0f);
