@@ -12,7 +12,7 @@
                 inset 0 1px 0 rgba(255,255,255,0.04);
     color: #c8c8c8;
     font-family: "Helvetica Neue", Arial, sans-serif;
-    overflow: hidden;
+    /* No overflow:hidden — port connectors extend outside the box */
 }
 
 /* = HEADER =============================================================== */
@@ -109,33 +109,34 @@
 /* = INDIVIDUAL SLIDER CELL =============================================== */
 .mod-pedal-gsynth{{{cns}}} .gs-slider {
     position: relative;
-    width: 40px;
+    width: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     flex-shrink: 0;
 }
 
-/* Graduation lines track — drawn behind the handle sprite */
-.mod-pedal-gsynth{{{cns}}} .gs-track-bg {
+/* Graduation lines + groove drawn as a pseudo-element behind the handle */
+.mod-pedal-gsynth{{{cns}}} .gs-slider::before {
+    content: "";
     position: absolute;
     top: 0;
     left: 50%;
-    width: 20px;
-    margin-left: -10px;
-    height: 160px;
+    width: 24px;
+    height: 170px;
+    margin-left: -12px;
     pointer-events: none;
-    /* Narrow groove in the centre */
+    z-index: 0;
     background:
-        /* groove */
+        /* narrow dark groove in the centre */
         linear-gradient(
             to right,
-            transparent 7px,
-            #1c1c1c 7px,
-            #1c1c1c 13px,
-            transparent 13px
+            transparent 9px,
+            #1c1c1c 9px,
+            #1c1c1c 15px,
+            transparent 15px
         ),
-        /* graduation ticks — horizontal lines every 20px */
+        /* graduation ticks — 1 px line every 20 px */
         repeating-linear-gradient(
             to bottom,
             rgba(210,210,210,0.10) 0px,
@@ -145,19 +146,21 @@
         );
 }
 
-/* The mod-slider wrapper must be positioned so MOD can move the sprite */
-.mod-pedal-gsynth{{{cns}}} .gs-slider-inner {
-    width: 40px;
-    height: 160px;
+/* mod-slider wrapper — sits on top of the ::before track */
+.mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider {
     position: relative;
+    z-index: 1;
+    width: 44px;
+    height: 170px;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-slider-inner .mod-slider-image {
+/* Slider handle sprite — standard MOD dimensions */
+.mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider .mod-slider-image {
     background-image: url(/resources/pedals/slider.png{{{ns}}});
     background-repeat: no-repeat;
-    background-size: auto 160px;
-    height: 160px;
-    width: 40px;
+    background-size: auto 170px;
+    height: 170px;
+    width: 44px;
     cursor: pointer;
 }
 
@@ -171,6 +174,8 @@
     opacity: 0.45;
     margin-top: 3px;
     text-transform: uppercase;
+    position: relative;
+    z-index: 1;
 }
 
 /* = FOOTSWITCH =========================================================== */
@@ -198,7 +203,11 @@
     background: radial-gradient(circle at 35% 30%, #888, #333 65%, #1a1a1a);
 }
 
-/* = AUDIO I/O ============================================================ */
+/* = AUDIO I/O ============================================================
+   Ports extend just outside the pedal border — requires no overflow:hidden.
+   Input : left side, vertically centred.
+   Output: top-right corner, as requested.
+   ======================================================================== */
 .mod-pedal-gsynth{{{cns}}} .mod-pedal-input {
     position: absolute;
     left: -22px;
@@ -211,8 +220,7 @@
 .mod-pedal-gsynth{{{cns}}} .mod-pedal-output {
     position: absolute;
     right: -22px;
-    top: 50%;
+    top: 0;
     width: 22px;
     height: 32px;
-    margin-top: -16px;
 }
