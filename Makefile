@@ -45,5 +45,7 @@ install: all
 	install -m 644 $(BUNDLE)/manifest.ttl  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 644 $(BUNDLE)/$(PLUGIN).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 755 $(BUNDLE)/$(PLUGIN).so  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui
+	install -m 644 $(BUNDLE)/modgui/*       $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui/
 
 .PHONY: all clean install smoke

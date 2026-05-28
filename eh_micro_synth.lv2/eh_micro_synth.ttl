@@ -1,8 +1,9 @@
-@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
-@prefix doap:  <http://usefulinc.com/ns/doap#> .
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix units: <http://lv2plug.in/ns/extensions/units#> .
+@prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
+@prefix doap:   <http://usefulinc.com/ns/doap#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix units:  <http://lv2plug.in/ns/extensions/units#> .
+@prefix modgui: <http://moddevices.com/ns/modgui#> .
 
 <https://github.com/pilali/gsynth/eh-micro-synth>
     a lv2:Plugin , lv2:FilterPlugin ;
@@ -104,4 +105,67 @@
         lv2:portProperty lv2:integer , lv2:enumeration , lv2:toggled ;
         lv2:scalePoint [ rdfs:label "Schmitt + Flip-Flops" ; rdf:value 0 ] ;
         lv2:scalePoint [ rdfs:label "YIN (CPU heavier)" ; rdf:value 1 ]
+    ] ;
+
+    modgui:gui [
+        modgui:resourcesDirectory <modgui> ;
+        modgui:iconTemplate       <modgui/icon-eh-micro-synth.html> ;
+        modgui:stylesheet         <modgui/stylesheet-eh-micro-synth.css> ;
+        modgui:screenshot         <modgui/screenshot-eh-micro-synth.png> ;
+        modgui:thumbnail          <modgui/thumbnail-eh-micro-synth.png> ;
+        modgui:brand              "GSynth" ;
+        modgui:label              "EH Micro Synth" ;
+        modgui:model              "Micro Synthesizer" ;
+        modgui:panel              "ehms" ;
+        modgui:color              "cream" ;
+        modgui:knob               "black" ;
+        modgui:port [
+            lv2:index 2 ;
+            lv2:symbol "guitar" ;
+            lv2:name "Guitar"
+        ] , [
+            lv2:index 3 ;
+            lv2:symbol "octave" ;
+            lv2:name "Octave"
+        ] , [
+            lv2:index 4 ;
+            lv2:symbol "sub_octave" ;
+            lv2:name "Sub Octave"
+        ] , [
+            lv2:index 5 ;
+            lv2:symbol "square" ;
+            lv2:name "Square Wave"
+        ] , [
+            lv2:index 6 ;
+            lv2:symbol "attack_delay" ;
+            lv2:name "Attack"
+        ] , [
+            lv2:index 7 ;
+            lv2:symbol "start_freq" ;
+            lv2:name "Start"
+        ] , [
+            lv2:index 8 ;
+            lv2:symbol "stop_freq" ;
+            lv2:name "Stop"
+        ] , [
+            lv2:index 9 ;
+            lv2:symbol "resonance" ;
+            lv2:name "Resonance"
+        ] , [
+            lv2:index 10 ;
+            lv2:symbol "filter_rate" ;
+            lv2:name "Rate"
+        ] , [
+            lv2:index 11 ;
+            lv2:symbol "trigger" ;
+            lv2:name "Trigger"
+        ] , [
+            lv2:index 12 ;
+            lv2:symbol "filter_type" ;
+            lv2:name "Filter"
+        ] , [
+            lv2:index 13 ;
+            lv2:symbol "pitch_track" ;
+            lv2:name "Pitch"
+        ]
     ] .

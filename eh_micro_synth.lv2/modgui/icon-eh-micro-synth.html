@@ -1,0 +1,98 @@
+<div class="mod-pedal-ehms{{{cns}}} mod-pedal" mod-role="pedal">
+    <div mod-role="drag-handle" class="mod-drag-handle"></div>
+
+    <!-- Brand header -->
+    <div class="ehms-brand">electro-harmonix</div>
+    <div class="ehms-model-row">
+        <div class="ehms-led" mod-role="bypass-light"></div>
+        <div class="ehms-model">MICRO SYNTHESIZER</div>
+    </div>
+    <div class="ehms-subtitle">GUITAR</div>
+
+    <!-- VOICE MIX section (left) -->
+    <div class="ehms-section ehms-mix">
+        <div class="ehms-section-title">VOICE MIX</div>
+        <div class="ehms-sliders">
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="guitar"></div>
+                <span class="mod-slider-title">GUITAR</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="octave"></div>
+                <span class="mod-slider-title">OCTAVE</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="sub_octave"></div>
+                <span class="mod-slider-title">SUB OCTAVE</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="square"></div>
+                <span class="mod-slider-title">SQUARE WAVE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER section (right) -->
+    <div class="ehms-section ehms-filter">
+        <div class="ehms-section-title">FILTER</div>
+        <div class="ehms-sliders">
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="trigger"></div>
+                <span class="mod-slider-title">TRIGGER</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="attack_delay"></div>
+                <span class="mod-slider-title">ATTACK</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="start_freq"></div>
+                <span class="mod-slider-title">START</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="stop_freq"></div>
+                <span class="mod-slider-title">STOP</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="resonance"></div>
+                <span class="mod-slider-title">RESON</span>
+            </div>
+            <div class="mod-slider ehms-slider">
+                <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_rate"></div>
+                <span class="mod-slider-title">RATE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom-row toggles (modern additions, not on original) -->
+    <div class="ehms-toggles">
+        <div class="ehms-toggle">
+            <div class="mod-knob-image ehms-toggle-knob" mod-role="input-control-port" mod-port-symbol="filter_type"></div>
+            <span class="ehms-toggle-label">FILTER</span>
+        </div>
+        <div class="ehms-toggle">
+            <div class="mod-knob-image ehms-toggle-knob" mod-role="input-control-port" mod-port-symbol="pitch_track"></div>
+            <span class="ehms-toggle-label">PITCH</span>
+        </div>
+    </div>
+
+    <!-- Footswitch -->
+    <div class="ehms-footswitch" mod-role="bypass">
+        <div class="ehms-footswitch-cap"></div>
+    </div>
+
+    <!-- Audio ports -->
+    <div class="mod-pedal-input">
+        {{#effect.ports.audio.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-audio-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.audio.input}}
+    </div>
+    <div class="mod-pedal-output">
+        {{#effect.ports.audio.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}" mod-role="output-audio-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.audio.output}}
+    </div>
+</div>
