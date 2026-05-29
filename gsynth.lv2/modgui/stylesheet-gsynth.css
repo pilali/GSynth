@@ -1,5 +1,14 @@
 /* GSynth — ModGUI
-   Rectangle noir paysage, sliders verticaux avec graduations grises. */
+   Rectangle noir paysage, sliders verticaux avec graduations grises.
+
+   Notes d'intégration MOD :
+   - Le drag-handle global (.mod-pedal .mod-drag-handle) couvre toute la
+     surface avec cursor:move et z-index:20. Les éléments interactifs doivent
+     donc passer AU-DESSUS (z-index > 20) pour être cliquables ; tout ce qui
+     reste en-dessous demeure une zone de déplacement.
+   - Les images embarquées (slider.png) sont servies depuis le
+     resourcesDirectory du bundle via /resources/<fichier>{{{ns}}} (la route
+     EffectResource de mod-ui résout l'argument ?uri vers ce dossier). */
 
 /* = CONTAINER ============================================================ */
 .mod-pedal-gsynth{{{cns}}} {
@@ -24,6 +33,7 @@
     align-items: center;
     padding: 0 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    /* stays below the drag-handle -> the header is a drag zone */
 }
 
 .mod-pedal-gsynth{{{cns}}} .gs-brand {
@@ -65,6 +75,9 @@
     display: flex;
     align-items: flex-start;
     gap: 0;
+    /* z-index auto: this container does NOT create a stacking context, so the
+       sliders inside can be raised above the drag-handle individually while the
+       empty gaps stay draggable. */
 }
 
 /* = GROUP ================================================================ */
@@ -146,18 +159,22 @@
         );
 }
 
-/* mod-slider wrapper — sits on top of the ::before track */
+/* mod-slider wrapper — raised ABOVE the global drag-handle (z-index:20) so the
+   filmstrip is clickable/draggable. position:relative + z-index makes it its
+   own stacking context that wins over the handle. */
 .mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider {
     position: relative;
-    z-index: 1;
+    z-index: 30;
     width: 44px;
     height: 170px;
 }
 
-/* Slider handle sprite — standard MOD dimensions */
+/* Slider handle sprite — bundled filmstrip served from the plugin's modgui
+   resourcesDirectory. 64 frames of 44x170, laid out horizontally. */
 .mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider .mod-slider-image {
-    background-image: url(/resources/pedals/slider.png{{{ns}}});
+    background-image: url(/resources/slider.png{{{ns}}});
     background-repeat: no-repeat;
+    background-position: 0px 0px;
     background-size: auto 170px;
     height: 170px;
     width: 44px;
@@ -187,6 +204,7 @@
     width: 40px;
     height: 40px;
     cursor: pointer;
+    z-index: 30;           /* clickable bypass, above the drag-handle */
 }
 
 .mod-pedal-gsynth{{{cns}}} .gs-footswitch-cap {
@@ -204,23 +222,62 @@
 }
 
 /* = AUDIO I/O ============================================================
-   Ports extend just outside the pedal border — requires no overflow:hidden.
-   Input : left side, vertically centred.
-   Output: top-right corner, as requested.
+   Input  : left side, vertically centred.
+   Output : right side, vertically centred.
+   The connectors overhang the body by a few px so cables can attach.
+   The extra `.mod-pedal` class in the selector raises specificity above the
+   global default rules (.mod-pedal .mod-pedal-input { top:106px; left:-88px }).
    ======================================================================== */
-.mod-pedal-gsynth{{{cns}}} .mod-pedal-input {
+.mod-pedal-gsynth{{{cns}}}.mod-pedal .mod-pedal-input {
     position: absolute;
-    left: -22px;
     top: 50%;
-    width: 22px;
-    height: 32px;
-    margin-top: -16px;
+    left: -16px;
+    width: 16px;
+    height: 28px;
+    margin: -14px 0 0 0;
 }
 
-.mod-pedal-gsynth{{{cns}}} .mod-pedal-output {
+.mod-pedal-gsynth{{{cns}}}.mod-pedal .mod-pedal-output {
     position: absolute;
-    right: -22px;
-    top: 0;
-    width: 22px;
-    height: 32px;
+    top: 50%;
+    right: -16px;
+    width: 16px;
+    height: 28px;
+    margin: -14px 0 0 0;
+}
+
+/* the droppable/draggable port element fills its container */
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-input .mod-input,
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-output .mod-output {
+    position: relative;
+    margin: 0;
+    width: 16px;
+    height: 28px;
+}
+
+/* socket body */
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-input-image,
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-output-image {
+    position: relative;
+    width: 16px;
+    height: 28px;
+    border-radius: 3px;
+    background: linear-gradient(#3a3a3a, #161616);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12),
+                0 1px 3px rgba(0,0,0,0.7);
+}
+
+/* socket hole */
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-input-image::after,
+.mod-pedal-gsynth{{{cns}}} .mod-pedal-output-image::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #000 55%, #444);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
 }

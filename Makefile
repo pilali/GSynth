@@ -25,6 +25,9 @@ LDLIBS ?= -lm
 PREFIX ?= /usr/local
 LV2DIR ?= $(PREFIX)/lib/lv2
 
+# Set WITH_MODGUI=0 to install the plugin without the (optional) MOD GUI.
+WITH_MODGUI ?= 1
+
 all: $(SO)
 
 $(SO): src/$(PLUGIN).c | $(BUNDLE)
@@ -45,7 +48,17 @@ install: all
 	install -m 644 $(BUNDLE)/manifest.ttl  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 644 $(BUNDLE)/$(PLUGIN).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 755 $(BUNDLE)/$(PLUGIN).so  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+ifeq ($(WITH_MODGUI),1)
+	$(MAKE) install-modgui
+endif
+
+# The MOD GUI is optional and self-contained: modgui.ttl is referenced from
+# both manifest.ttl and gsynth.ttl via rdfs:seeAlso, so omitting these files
+# leaves a fully functional plugin with a host-generated generic UI.
+install-modgui: all
+	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+	install -m 644 $(BUNDLE)/modgui.ttl    $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui
 	install -m 644 $(BUNDLE)/modgui/*       $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui/
 
-.PHONY: all clean install smoke
+.PHONY: all clean install install-modgui smoke
