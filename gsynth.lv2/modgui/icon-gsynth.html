@@ -138,8 +138,10 @@
 
     </div>
 
-    <!-- Audio ports: default template markup, left untouched so mod-ui draws
-         and positions its native jack 6.35 connectors. -->
+    <!-- Audio/MIDI/CV ports: standard MOD template markup (cf. AidaDSP), left
+         completely untouched so mod-ui supplies and positions its native
+         side-profile jack connectors. GSynth only has audio ports, but the full
+         block is kept verbatim for conformance. -->
     <div class="mod-pedal-input">
         {{#effect.ports.audio.input}}
         <div class="mod-input mod-input-disconnected" title="{{name}}"
@@ -147,6 +149,18 @@
             <div class="mod-pedal-input-image"></div>
         </div>
         {{/effect.ports.audio.input}}
+        {{#effect.ports.midi.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}"
+             mod-role="input-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.midi.input}}
+        {{#effect.ports.cv.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}"
+             mod-role="input-cv-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.cv.input}}
     </div>
     <div class="mod-pedal-output">
         {{#effect.ports.audio.output}}
@@ -155,5 +169,17 @@
             <div class="mod-pedal-output-image"></div>
         </div>
         {{/effect.ports.audio.output}}
+        {{#effect.ports.midi.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}"
+             mod-role="output-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.midi.output}}
+        {{#effect.ports.cv.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}"
+             mod-role="output-cv-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.cv.output}}
     </div>
 </div>
