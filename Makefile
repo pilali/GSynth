@@ -25,6 +25,9 @@ LDLIBS ?= -lm
 PREFIX ?= /usr/local
 LV2DIR ?= $(PREFIX)/lib/lv2
 
+# Set WITH_MODGUI=0 to install the plugin without the (optional) MOD GUI.
+WITH_MODGUI ?= 1
+
 all: $(SO)
 
 $(SO): src/$(PLUGIN).c | $(BUNDLE)
@@ -42,10 +45,27 @@ clean:
 
 install: all
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)
-	install -m 644 $(BUNDLE)/manifest.ttl  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 644 $(BUNDLE)/$(PLUGIN).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -m 755 $(BUNDLE)/$(PLUGIN).so  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+ifeq ($(WITH_MODGUI),1)
+	install -m 644 $(BUNDLE)/manifest.ttl  $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
+	$(MAKE) install-modgui
+else
+	# GUI-less install: strip the optional-modgui block so the host does not
+	# warn about a missing modgui.ttl. The result is still a valid manifest.
+	sed '/# --- optional-modgui/,/rdfs:seeAlso <modgui.ttl>/d' \
+	    $(BUNDLE)/manifest.ttl > $(DESTDIR)$(LV2DIR)/$(BUNDLE)/manifest.ttl
+	chmod 644 $(DESTDIR)$(LV2DIR)/$(BUNDLE)/manifest.ttl
+endif
+
+# The MOD GUI is optional and self-contained: modgui.ttl is referenced from
+# manifest.ttl via rdfs:seeAlso. Omitting modgui.ttl and the modgui/ resources
+# (e.g. WITH_MODGUI=0) leaves a fully functional plugin with a host-generated
+# generic UI.
+install-modgui: all
+	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+	install -m 644 $(BUNDLE)/modgui.ttl    $(DESTDIR)$(LV2DIR)/$(BUNDLE)/
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui
 	install -m 644 $(BUNDLE)/modgui/*       $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui/
 
-.PHONY: all clean install smoke
+.PHONY: all clean install install-modgui smoke

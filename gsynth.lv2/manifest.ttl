@@ -5,3 +5,9 @@
     a lv2:Plugin ;
     lv2:binary <gsynth.so> ;
     rdfs:seeAlso <gsynth.ttl> .
+
+# --- optional-modgui (stripped for a GUI-less install / WITH_MODGUI=0) ---
+# lilv only follows seeAlso declared in the manifest (not nested ones), so the
+# optional MOD GUI must be referenced here. It is a standalone single-line
+# statement so the Makefile can remove this whole block cleanly.
+<https://github.com/pilali/gsynth/plugin> rdfs:seeAlso <modgui.ttl> .

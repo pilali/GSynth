@@ -1,32 +1,45 @@
-/* GSynth — ModGUI
-   Rectangle noir paysage, sliders verticaux avec graduations grises. */
+/* GSynth — MOD GUI stylesheet.
 
-/* = CONTAINER ============================================================ */
-.mod-pedal-gsynth{{{cns}}} {
-    position: absolute;
+   Layout follows the MOD reference approach (cf. AidaDSP rt-neural-generic):
+   - The root is laid out in NORMAL FLOW (flexbox). mod-ui wraps this template
+     in its own .mod-pedal element, sizes it to our content and makes it
+     draggable, then positions the audio jacks via the global pedal CSS.
+   - Controls live in a .mod-control-group (z-index:20 globally), so they layer
+     above the full-surface .mod-drag-handle while the header/footer remain drag
+     zones.
+   - The audio input/output blocks are NOT restyled or repositioned: mod-ui's
+     native jack 6.35 connectors are used as-is, only nudged to vertical centre
+     so the input sits middle-left and the output middle-right.
+   - Bundled images (slider.png) are served from the plugin resourcesDirectory
+     via /resources/<file>{{{ns}}} (mod-ui's EffectResource route). */
+
+/* = ROOT (normal flow — do NOT position:absolute) ======================== */
+.gsynth{{{cns}}} {
     width: 620px;
-    height: 270px;
+    color: #c8c8c8;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    /* no overflow:hidden — jack connectors extend outside the body */
+}
+
+.gsynth{{{cns}}} .gs-grid {
+    display: flex;
+    flex-direction: column;
     background: #0d0d0d;
     border-radius: 10px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.65),
                 inset 0 1px 0 rgba(255,255,255,0.04);
-    color: #c8c8c8;
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    /* No overflow:hidden — port connectors extend outside the box */
 }
 
-/* = HEADER =============================================================== */
-.mod-pedal-gsynth{{{cns}}} .gs-header {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 26px;
+/* = HEADER (drag zone) =================================================== */
+.gsynth{{{cns}}} .gs-header {
     display: flex;
     align-items: center;
+    height: 26px;
     padding: 0 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-brand {
+.gsynth{{{cns}}} .gs-brand {
     font-size: 13px;
     font-weight: 700;
     font-style: italic;
@@ -35,7 +48,7 @@
     margin-right: 10px;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-subtitle {
+.gsynth{{{cns}}} .gs-subtitle {
     font-size: 8px;
     letter-spacing: 3px;
     font-weight: 600;
@@ -43,48 +56,42 @@
     flex: 1;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-led {
+.gsynth{{{cns}}} .gs-led {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #3a0000, #1a0000);
     box-shadow: 0 0 1px rgba(0,0,0,0.8);
 }
-.mod-pedal-gsynth{{{cns}}} .gs-led.on {
+.gsynth{{{cns}}} .gs-led.on {
     background: radial-gradient(circle at 30% 30%, #ff7070, #bb0000);
     box-shadow: 0 0 6px #ff2020, 0 0 12px #ff2020;
 }
 
-/* = CONTROLS ROW ========================================================= */
-.mod-pedal-gsynth{{{cns}}} .gs-controls {
-    position: absolute;
-    top: 26px;
-    left: 10px;
-    right: 10px;
-    bottom: 42px;
+/* = CONTROLS ROW (mod-control-group -> z-index:20, clickable) ============ */
+.gsynth{{{cns}}} .gs-controls {
     display: flex;
+    flex-direction: row;
     align-items: flex-start;
-    gap: 0;
+    padding: 0 10px;
 }
 
-/* = GROUP ================================================================ */
-.mod-pedal-gsynth{{{cns}}} .gs-group {
+.gsynth{{{cns}}} .gs-group {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    height: 100%;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-sliders {
+.gsynth{{{cns}}} .gs-sliders {
     flex: 1;
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    padding: 6px 4px 0;
+    padding: 8px 4px 0;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-group-label {
+.gsynth{{{cns}}} .gs-group-label {
     height: 16px;
     text-align: center;
     font-size: 7px;
@@ -98,7 +105,7 @@
 }
 
 /* = GROUP SEPARATOR ====================================================== */
-.mod-pedal-gsynth{{{cns}}} .gs-separator {
+.gsynth{{{cns}}} .gs-separator {
     width: 1px;
     align-self: stretch;
     background: rgba(255,255,255,0.07);
@@ -107,7 +114,7 @@
 }
 
 /* = INDIVIDUAL SLIDER CELL =============================================== */
-.mod-pedal-gsynth{{{cns}}} .gs-slider {
+.gsynth{{{cns}}} .gs-slider {
     position: relative;
     width: 44px;
     display: flex;
@@ -116,11 +123,11 @@
     flex-shrink: 0;
 }
 
-/* Graduation lines + groove drawn as a pseudo-element behind the handle */
-.mod-pedal-gsynth{{{cns}}} .gs-slider::before {
+/* Graduation lines + groove drawn behind the handle */
+.gsynth{{{cns}}} .gs-slider::before {
     content: "";
     position: absolute;
-    top: 0;
+    top: 8px;
     left: 50%;
     width: 24px;
     height: 170px;
@@ -128,7 +135,6 @@
     pointer-events: none;
     z-index: 0;
     background:
-        /* narrow dark groove in the centre */
         linear-gradient(
             to right,
             transparent 9px,
@@ -136,7 +142,6 @@
             #1c1c1c 15px,
             transparent 15px
         ),
-        /* graduation ticks — 1 px line every 20 px */
         repeating-linear-gradient(
             to bottom,
             rgba(210,210,210,0.10) 0px,
@@ -146,18 +151,19 @@
         );
 }
 
-/* mod-slider wrapper — sits on top of the ::before track */
-.mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider {
+/* mod-slider wrapper — sits above its own ::before track */
+.gsynth{{{cns}}} .gs-slider .mod-slider {
     position: relative;
     z-index: 1;
     width: 44px;
     height: 170px;
 }
 
-/* Slider handle sprite — standard MOD dimensions */
-.mod-pedal-gsynth{{{cns}}} .gs-slider .mod-slider .mod-slider-image {
-    background-image: url(/resources/pedals/slider.png{{{ns}}});
+/* Slider handle sprite — bundled filmstrip (64 frames of 44x170, horizontal) */
+.gsynth{{{cns}}} .gs-slider .mod-slider .mod-slider-image {
+    background-image: url(/resources/slider.png{{{ns}}});
     background-repeat: no-repeat;
+    background-position: 0px 0px;
     background-size: auto 170px;
     height: 170px;
     width: 44px;
@@ -165,7 +171,7 @@
 }
 
 /* Slider label */
-.mod-pedal-gsynth{{{cns}}} .gs-label {
+.gsynth{{{cns}}} .gs-label {
     display: block;
     font-size: 7px;
     font-weight: 700;
@@ -174,22 +180,25 @@
     opacity: 0.45;
     margin-top: 3px;
     text-transform: uppercase;
-    position: relative;
-    z-index: 1;
 }
 
-/* = FOOTSWITCH =========================================================== */
-.mod-pedal-gsynth{{{cns}}} .gs-footswitch {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    margin-left: -20px;
+/* = FOOTER / FOOTSWITCH ================================================== */
+.gsynth{{{cns}}} .gs-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 56px;
+}
+
+.gsynth{{{cns}}} .gs-footswitch {
+    position: relative;
+    z-index: 30;            /* above the full-surface drag-handle (z-index:20) */
     width: 40px;
     height: 40px;
     cursor: pointer;
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-footswitch-cap {
+.gsynth{{{cns}}} .gs-footswitch-cap {
     width: 34px;
     height: 34px;
     margin: 3px;
@@ -199,28 +208,16 @@
                 inset 0 1px 3px rgba(255,255,255,0.15);
 }
 
-.mod-pedal-gsynth{{{cns}}} .gs-footswitch.on .gs-footswitch-cap {
+.gsynth{{{cns}}} .gs-footswitch.on .gs-footswitch-cap {
     background: radial-gradient(circle at 35% 30%, #888, #333 65%, #1a1a1a);
 }
 
 /* = AUDIO I/O ============================================================
-   Ports extend just outside the pedal border — requires no overflow:hidden.
-   Input : left side, vertically centred.
-   Output: top-right corner, as requested.
-   ======================================================================== */
-.mod-pedal-gsynth{{{cns}}} .mod-pedal-input {
-    position: absolute;
-    left: -22px;
+   Do NOT restyle the jack images or their left/right/width — mod-ui draws the
+   native jack 6.35 connectors. We only override the vertical position so the
+   input sits middle-left and the output middle-right of the body. */
+.gsynth{{{cns}}} .mod-pedal-input,
+.gsynth{{{cns}}} .mod-pedal-output {
     top: 50%;
-    width: 22px;
-    height: 32px;
-    margin-top: -16px;
-}
-
-.mod-pedal-gsynth{{{cns}}} .mod-pedal-output {
-    position: absolute;
-    right: -22px;
-    top: 0;
-    width: 22px;
-    height: 32px;
+    transform: translateY(-50%);
 }

@@ -1,127 +1,147 @@
-<div class="mod-pedal-gsynth{{{cns}}} mod-pedal" mod-role="pedal">
+<!--
+  GSynth — MOD GUI icon template.
+  Modelled on the MOD reference layout (cf. AidaDSP rt-neural-generic):
+  - the root is laid out in normal flow (flexbox), NOT absolutely positioned;
+    mod-ui wraps this template in its own .mod-pedal div and sizes it to the
+    content, then positions the audio jacks itself via the global pedal CSS.
+  - controls live inside a .mod-control-group so mod-ui layers them correctly.
+  - the audio input/output blocks are left exactly as the default template:
+    we do not restyle or reposition them, so the native jack 6.35 connectors
+    are placed by mod-ui (only nudged to vertical centre in the stylesheet).
+-->
+<div class="gsynth{{{cns}}}">
     <div mod-role="drag-handle" class="mod-drag-handle"></div>
 
-    <!-- Header -->
-    <div class="gs-header">
-        <span class="gs-brand">GSynth</span>
-        <span class="gs-subtitle">GUITAR SYNTHESIZER</span>
-        <div class="gs-led" mod-role="bypass-light"></div>
-    </div>
+    <div class="gs-grid">
 
-    <!-- All sliders in one row, three groups -->
-    <div class="gs-controls">
-
-        <!-- VOICE MIX group -->
-        <div class="gs-group">
-            <div class="gs-sliders">
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="guitar"></div>
-                    </div>
-                    <span class="gs-label">GTR</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="octave"></div>
-                    </div>
-                    <span class="gs-label">OCT</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="sub_octave"></div>
-                    </div>
-                    <span class="gs-label">SUB</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="square"></div>
-                    </div>
-                    <span class="gs-label">SQR</span>
-                </div>
-            </div>
-            <div class="gs-group-label">VOICE MIX</div>
+        <!-- Header -->
+        <div class="gs-header">
+            <span class="gs-brand">GSynth</span>
+            <span class="gs-subtitle">GUITAR SYNTHESIZER</span>
+            <div class="gs-led" mod-role="bypass-light"></div>
         </div>
 
-        <div class="gs-separator"></div>
+        <!-- All sliders in one row, three groups -->
+        <div class="mod-control-group gs-controls">
 
-        <!-- FILTER group -->
-        <div class="gs-group">
-            <div class="gs-sliders">
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="trigger"></div>
+            <!-- VOICE MIX group -->
+            <div class="gs-group">
+                <div class="gs-sliders">
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="guitar"></div>
+                        </div>
+                        <span class="gs-label">GTR</span>
                     </div>
-                    <span class="gs-label">TRIG</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="attack_delay"></div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="octave"></div>
+                        </div>
+                        <span class="gs-label">OCT</span>
                     </div>
-                    <span class="gs-label">ATCK</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="start_freq"></div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="sub_octave"></div>
+                        </div>
+                        <span class="gs-label">SUB</span>
                     </div>
-                    <span class="gs-label">STRT</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="stop_freq"></div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="square"></div>
+                        </div>
+                        <span class="gs-label">SQR</span>
                     </div>
-                    <span class="gs-label">STOP</span>
                 </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="resonance"></div>
-                    </div>
-                    <span class="gs-label">RES</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_rate"></div>
-                    </div>
-                    <span class="gs-label">RATE</span>
-                </div>
+                <div class="gs-group-label">VOICE MIX</div>
             </div>
-            <div class="gs-group-label">FILTER</div>
+
+            <div class="gs-separator"></div>
+
+            <!-- FILTER group -->
+            <div class="gs-group">
+                <div class="gs-sliders">
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="trigger"></div>
+                        </div>
+                        <span class="gs-label">TRIG</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="attack_delay"></div>
+                        </div>
+                        <span class="gs-label">ATCK</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="start_freq"></div>
+                        </div>
+                        <span class="gs-label">STRT</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="stop_freq"></div>
+                        </div>
+                        <span class="gs-label">STOP</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="resonance"></div>
+                        </div>
+                        <span class="gs-label">RES</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_rate"></div>
+                        </div>
+                        <span class="gs-label">RATE</span>
+                    </div>
+                </div>
+                <div class="gs-group-label">FILTER</div>
+            </div>
+
+            <div class="gs-separator"></div>
+
+            <!-- MISC group -->
+            <div class="gs-group">
+                <div class="gs-sliders">
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="input_drive"></div>
+                        </div>
+                        <span class="gs-label">DRV</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_type"></div>
+                        </div>
+                        <span class="gs-label">FILT</span>
+                    </div>
+                    <div class="gs-slider">
+                        <div class="mod-slider">
+                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="pitch_track"></div>
+                        </div>
+                        <span class="gs-label">PTCH</span>
+                    </div>
+                </div>
+                <div class="gs-group-label">MISC</div>
+            </div>
+
         </div>
 
-        <div class="gs-separator"></div>
-
-        <!-- MISC group -->
-        <div class="gs-group">
-            <div class="gs-sliders">
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="input_drive"></div>
-                    </div>
-                    <span class="gs-label">DRV</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_type"></div>
-                    </div>
-                    <span class="gs-label">FILT</span>
-                </div>
-                <div class="gs-slider">
-                    <div class="mod-slider">
-                        <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="pitch_track"></div>
-                    </div>
-                    <span class="gs-label">PTCH</span>
-                </div>
+        <!-- Footer / footswitch -->
+        <div class="gs-footer">
+            <div class="gs-footswitch" mod-role="bypass">
+                <div class="gs-footswitch-cap"></div>
             </div>
-            <div class="gs-group-label">MISC</div>
         </div>
 
     </div>
 
-    <!-- Footswitch -->
-    <div class="gs-footswitch" mod-role="bypass">
-        <div class="gs-footswitch-cap"></div>
-    </div>
-
-    <!-- Audio ports -->
+    <!-- Audio/MIDI/CV ports: standard MOD template markup (cf. AidaDSP), left
+         completely untouched so mod-ui supplies and positions its native
+         side-profile jack connectors. GSynth only has audio ports, but the full
+         block is kept verbatim for conformance. -->
     <div class="mod-pedal-input">
         {{#effect.ports.audio.input}}
         <div class="mod-input mod-input-disconnected" title="{{name}}"
@@ -129,6 +149,18 @@
             <div class="mod-pedal-input-image"></div>
         </div>
         {{/effect.ports.audio.input}}
+        {{#effect.ports.midi.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}"
+             mod-role="input-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.midi.input}}
+        {{#effect.ports.cv.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}"
+             mod-role="input-cv-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.cv.input}}
     </div>
     <div class="mod-pedal-output">
         {{#effect.ports.audio.output}}
@@ -137,5 +169,17 @@
             <div class="mod-pedal-output-image"></div>
         </div>
         {{/effect.ports.audio.output}}
+        {{#effect.ports.midi.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}"
+             mod-role="output-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.midi.output}}
+        {{#effect.ports.cv.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}"
+             mod-role="output-cv-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.cv.output}}
     </div>
 </div>
