@@ -15,7 +15,7 @@
 #
 ################################################################################
 
-GSYNTH_VERSION = dbfcf162d86954e5ee2cface2a026ce7459138f2
+GSYNTH_VERSION = 1b91c238ce680696775eecab7357bd05241e38f7
 GSYNTH_SITE = $(call github,pilali,GSynth,$(GSYNTH_VERSION))
 GSYNTH_BUNDLES = gsynth.lv2
 
