@@ -1,2 +1,5 @@
 *.o
 *.so
+
+# JUCE / CMake build output
+/juce/build/
