@@ -22,6 +22,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ---------------------------------------------------------------------------
 set(GSYNTH_JUCE_TAG "8.0.8" CACHE STRING "JUCE git tag to fetch when GSYNTH_JUCE_DIR is unset")
 
+# Install the built plug-ins into the user plug-in folders so hosts and auval
+# pick them up immediately (AU -> ~/Library/Audio/Plug-Ins/Components, etc.).
+# Turn off for CI/packaging with -DGSYNTH_COPY_AFTER_BUILD=OFF.
+option(GSYNTH_COPY_AFTER_BUILD "Copy plug-ins to the user plug-in folders after build" ON)
+
 if(DEFINED GSYNTH_JUCE_DIR)
     message(STATUS "GSynth: using local JUCE at ${GSYNTH_JUCE_DIR}")
     add_subdirectory(${GSYNTH_JUCE_DIR} ${CMAKE_BINARY_DIR}/JUCE)
@@ -48,7 +53,7 @@ juce_add_plugin(GSynth
     NEEDS_MIDI_OUTPUT         FALSE
     IS_MIDI_EFFECT            FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD   FALSE
+    COPY_PLUGIN_AFTER_BUILD   ${GSYNTH_COPY_AFTER_BUILD}
     FORMATS                   AU VST3 Standalone
     VST3_CATEGORIES           Fx Filter
     AU_MAIN_TYPE              kAudioUnitType_Effect

@@ -37,11 +37,19 @@ Artifacts land under `build/GSynth_artefacts/Release/`:
 - **Windows** → `VST3/GSynth.vst3`, `Standalone/GSynth.exe`
 - **Linux** → `VST3/GSynth.vst3`, `Standalone/GSynth`
 
+By default (`GSYNTH_COPY_AFTER_BUILD=ON`) the build also installs them into the
+per-user plug-in folders so hosts and `auval` find them right away:
+`~/Library/Audio/Plug-Ins/Components` (AU) and `.../VST3` (VST3) on macOS,
+`~/.vst3` on Linux, `%COMMONPROGRAMFILES%\VST3` on Windows. Pass
+`-DGSYNTH_COPY_AFTER_BUILD=OFF` for CI/packaging builds.
+
 ### macOS notes (AU + VST3)
 - AU is macOS-only; build on a Mac (or CI with a macOS runner).
 - For distribution outside your own machine you need codesigning + notarization
-  (Apple Developer ID). Locally, unsigned builds run fine.
-- Validate the AU with `auval -v aufx Gsyn Plli`.
+  (Apple Developer ID). Locally, the ad-hoc signature JUCE applies is enough.
+- Validate the AU with `auval -v aufx Gsyn Plli`. If it reports "didn't find
+  the component" right after a build, refresh the AU cache:
+  `killall -9 AudioComponentRegistrar` then re-run `auval`.
 
 ### Linux notes
 A local GUI build needs the usual JUCE system packages, e.g. on Debian/Ubuntu:
