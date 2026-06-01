@@ -11,11 +11,14 @@
      native jack 6.35 connectors are used as-is, only nudged to vertical centre
      so the input sits middle-left and the output middle-right.
    - Bundled images (slider.png) are served from the plugin resourcesDirectory
-     via /resources/<file>{{{ns}}} (mod-ui's EffectResource route). */
+     via /resources/<file>{{{ns}}} (mod-ui's EffectResource route).
+
+   All dimensions are scaled 1.25x relative to the original 620px-wide layout;
+   slider.png is bundled at the matching 1.25x resolution (55x213 frames). */
 
 /* = ROOT (normal flow — do NOT position:absolute) ======================== */
 .gsynth{{{cns}}} {
-    width: 620px;
+    width: 775px;
     color: #c8c8c8;
     font-family: "Helvetica Neue", Arial, sans-serif;
     /* no overflow:hidden — jack connectors extend outside the body */
@@ -25,8 +28,8 @@
     display: flex;
     flex-direction: column;
     background: #0d0d0d;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.65),
+    border-radius: 13px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.65),
                 inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
@@ -34,38 +37,38 @@
 .gsynth{{{cns}}} .gs-header {
     display: flex;
     align-items: center;
-    height: 26px;
-    padding: 0 14px;
+    height: 33px;
+    padding: 0 18px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .gsynth{{{cns}}} .gs-brand {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
     font-style: italic;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.9px;
     color: #e0e0e0;
-    margin-right: 10px;
+    margin-right: 13px;
 }
 
 .gsynth{{{cns}}} .gs-subtitle {
-    font-size: 8px;
-    letter-spacing: 3px;
+    font-size: 10px;
+    letter-spacing: 3.75px;
     font-weight: 600;
     opacity: 0.40;
     flex: 1;
 }
 
 .gsynth{{{cns}}} .gs-led {
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #3a0000, #1a0000);
     box-shadow: 0 0 1px rgba(0,0,0,0.8);
 }
 .gsynth{{{cns}}} .gs-led.on {
     background: radial-gradient(circle at 30% 30%, #ff7070, #bb0000);
-    box-shadow: 0 0 6px #ff2020, 0 0 12px #ff2020;
+    box-shadow: 0 0 8px #ff2020, 0 0 15px #ff2020;
 }
 
 /* = CONTROLS ROW (mod-control-group -> z-index:20, clickable) ============ */
@@ -73,7 +76,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    padding: 0 10px;
+    padding: 0 13px;
 }
 
 .gsynth{{{cns}}} .gs-group {
@@ -88,20 +91,20 @@
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    padding: 8px 4px 0;
+    padding: 10px 5px 0;
 }
 
 .gsynth{{{cns}}} .gs-group-label {
-    height: 16px;
+    height: 20px;
     text-align: center;
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 2.5px;
+    letter-spacing: 3.1px;
     opacity: 0.30;
-    padding-bottom: 2px;
+    padding-bottom: 3px;
     border-top: 1px solid rgba(255,255,255,0.05);
-    margin: 4px 4px 0;
-    line-height: 14px;
+    margin: 5px 5px 0;
+    line-height: 18px;
 }
 
 /* = GROUP SEPARATOR ====================================================== */
@@ -109,14 +112,14 @@
     width: 1px;
     align-self: stretch;
     background: rgba(255,255,255,0.07);
-    margin: 8px 0 20px;
+    margin: 10px 0 25px;
     flex-shrink: 0;
 }
 
 /* = INDIVIDUAL SLIDER CELL =============================================== */
 .gsynth{{{cns}}} .gs-slider {
     position: relative;
-    width: 44px;
+    width: 55px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -127,27 +130,27 @@
 .gsynth{{{cns}}} .gs-slider::before {
     content: "";
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 50%;
-    width: 24px;
-    height: 170px;
-    margin-left: -12px;
+    width: 30px;
+    height: 213px;
+    margin-left: -15px;
     pointer-events: none;
     z-index: 0;
     background:
         linear-gradient(
             to right,
-            transparent 9px,
-            #1c1c1c 9px,
-            #1c1c1c 15px,
-            transparent 15px
+            transparent 11px,
+            #1c1c1c 11px,
+            #1c1c1c 19px,
+            transparent 19px
         ),
         repeating-linear-gradient(
             to bottom,
             rgba(210,210,210,0.10) 0px,
             rgba(210,210,210,0.10) 1px,
             transparent 1px,
-            transparent 20px
+            transparent 25px
         );
 }
 
@@ -155,30 +158,30 @@
 .gsynth{{{cns}}} .gs-slider .mod-slider {
     position: relative;
     z-index: 1;
-    width: 44px;
-    height: 170px;
+    width: 55px;
+    height: 213px;
 }
 
-/* Slider handle sprite — bundled filmstrip (64 frames of 44x170, horizontal) */
+/* Slider handle sprite — bundled filmstrip (64 frames of 55x213, horizontal) */
 .gsynth{{{cns}}} .gs-slider .mod-slider .mod-slider-image {
     background-image: url(/resources/slider.png{{{ns}}});
     background-repeat: no-repeat;
     background-position: 0px 0px;
-    background-size: auto 170px;
-    height: 170px;
-    width: 44px;
+    background-size: auto 213px;
+    height: 213px;
+    width: 55px;
     cursor: pointer;
 }
 
 /* Slider label */
 .gsynth{{{cns}}} .gs-label {
     display: block;
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     text-align: center;
     opacity: 0.45;
-    margin-top: 3px;
+    margin-top: 4px;
     text-transform: uppercase;
 }
 
@@ -187,25 +190,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 56px;
+    height: 70px;
 }
 
 .gsynth{{{cns}}} .gs-footswitch {
     position: relative;
     z-index: 30;            /* above the full-surface drag-handle (z-index:20) */
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     cursor: pointer;
 }
 
 .gsynth{{{cns}}} .gs-footswitch-cap {
-    width: 34px;
-    height: 34px;
-    margin: 3px;
+    width: 43px;
+    height: 43px;
+    margin: 4px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #666, #222 65%, #111);
-    box-shadow: 0 3px 5px rgba(0,0,0,0.6),
-                inset 0 1px 3px rgba(255,255,255,0.15);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.6),
+                inset 0 1px 4px rgba(255,255,255,0.15);
 }
 
 .gsynth{{{cns}}} .gs-footswitch.on .gs-footswitch-cap {
