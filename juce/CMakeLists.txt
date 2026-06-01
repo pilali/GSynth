@@ -12,6 +12,15 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+# macOS: universal (Apple Silicon + Intel) binaries by default, min version 10.13.
+# Must be set before project(). Ignored on other platforms; override on the CLI.
+if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "macOS target architectures")
+endif()
+if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
+endif()
+
 project(GSynth VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -64,6 +73,7 @@ set(GSYNTH_DSP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
 target_sources(GSynth PRIVATE
     PluginProcessor.cpp
+    PluginEditor.cpp
     ${GSYNTH_DSP_DIR}/gsynth_dsp.c)
 
 target_include_directories(GSynth PRIVATE ${GSYNTH_DSP_DIR})

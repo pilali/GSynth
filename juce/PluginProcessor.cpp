@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 
 namespace {
 // Parameter IDs match the LV2 port symbols so state maps 1:1 with the LV2 build.
@@ -170,9 +171,7 @@ void GSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
 juce::AudioProcessorEditor* GSynthAudioProcessor::createEditor()
 {
-    // Scaffold: auto-generated parameter editor. A custom fader UI mirroring the
-    // MOD modgui is the next step.
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new GSynthAudioProcessorEditor(*this);
 }
 
 void GSynthAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

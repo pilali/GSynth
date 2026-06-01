@@ -9,8 +9,9 @@ glue differs.
 
 | File | Role |
 |------|------|
-| `CMakeLists.txt`    | Build definition; fetches JUCE automatically. |
+| `CMakeLists.txt`    | Build definition; fetches JUCE automatically. macOS builds are universal (arm64 + x86_64) by default. |
 | `PluginProcessor.h/.cpp` | `AudioProcessor` + `AudioProcessorValueTreeState`. Maps the 13 controls onto `GSynthParams` and calls `gsynth_dsp_process`. |
+| `PluginEditor.h/.cpp` | Custom editor + `LookAndFeel` reproducing the MOD modgui look (dark pedal, 13 vertical faders in VOICE MIX / FILTER / MISC groups). |
 
 The DSP is monophonic (guitar in): inputs are summed to mono, processed once,
 and fanned out to all output channels.
@@ -59,7 +60,16 @@ sudo apt install libasound2-dev libfreetype-dev libx11-dev libxext-dev \
 ```
 (`libxinerama-dev` and `libgl1-mesa-dev` are the ones most often missing.)
 
-## Status / next step
+## Continuous integration
 
-- ✅ Processor + parameters wired to the shared core; **generic** parameter UI.
-- ⬜ Custom editor reproducing the MOD modgui fader layout (step 2).
+`.github/workflows/build.yml` builds on every push to the `JUCE` branch (and on
+tags / manual dispatch): **macOS universal** AU/VST3/Standalone and **Windows**
+VST3/Standalone, uploaded as downloadable artifacts. No local Windows machine
+needed.
+
+## Status
+
+- ✅ Processor + parameters wired to the shared core.
+- ✅ Custom editor mirroring the MOD modgui (faders + groups), natively drawn.
+- ✅ macOS universal binaries + Windows builds via CI.
+- ⬜ Code-signing / notarization for distribution (Apple Developer ID).
