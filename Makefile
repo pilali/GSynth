@@ -10,6 +10,11 @@ BUNDLE := gsynth.lv2
 PLUGIN := gsynth
 SO     := $(BUNDLE)/$(PLUGIN).so
 
+# DSP core (host-agnostic) + LV2 wrapper. The core is shared with the
+# JUCE/VST/AU builds; only the wrapper is format-specific.
+SRC := src/$(PLUGIN).c src/gsynth_dsp.c
+HDR := src/gsynth_dsp.h
+
 CC ?= cc
 PKG_CONFIG ?= pkg-config
 
@@ -30,8 +35,8 @@ WITH_MODGUI ?= 1
 
 all: $(SO)
 
-$(SO): src/$(PLUGIN).c | $(BUNDLE)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
+$(SO): $(SRC) $(HDR) | $(BUNDLE)
+	$(CC) $(CFLAGS) -o $@ $(SRC) $(LDFLAGS) $(LDLIBS)
 
 $(BUNDLE):
 	mkdir -p $@

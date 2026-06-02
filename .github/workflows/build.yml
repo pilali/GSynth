@@ -1,0 +1,64 @@
+name: build
+
+# Builds the JUCE plug-ins on every push to the JUCE branch, on version tags,
+# and on demand. macOS produces universal (arm64 + x86_64) AU/VST3/Standalone;
+# Windows produces VST3/Standalone. Artifacts are downloadable from the run.
+on:
+  push:
+    branches: [ JUCE ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  macos:
+    name: macOS (universal)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -B juce/build -S juce
+          -DCMAKE_BUILD_TYPE=Release
+          -DGSYNTH_COPY_AFTER_BUILD=OFF
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build
+        run: cmake --build juce/build --config Release --parallel
+
+      - name: Show binary architectures
+        run: |
+          lipo -info "juce/build/GSynth_artefacts/Release/VST3/GSynth.vst3/Contents/MacOS/GSynth" || true
+          lipo -info "juce/build/GSynth_artefacts/Release/AU/GSynth.component/Contents/MacOS/GSynth" || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: GSynth-macOS-universal
+          path: |
+            juce/build/GSynth_artefacts/Release/AU/GSynth.component
+            juce/build/GSynth_artefacts/Release/VST3/GSynth.vst3
+            juce/build/GSynth_artefacts/Release/Standalone/GSynth.app
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -B juce/build -S juce
+          -DCMAKE_BUILD_TYPE=Release
+          -DGSYNTH_COPY_AFTER_BUILD=OFF
+
+      - name: Build
+        run: cmake --build juce/build --config Release --parallel
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: GSynth-Windows
+          path: |
+            juce/build/GSynth_artefacts/Release/VST3/GSynth.vst3
+            juce/build/GSynth_artefacts/Release/Standalone/GSynth.exe
