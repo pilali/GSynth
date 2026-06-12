@@ -495,8 +495,10 @@ void gsynth_dsp_process(GSynthDsp* self, const GSynthParams* p,
         if (cutoff < 20.0f) cutoff = 20.0f;
 
         /* Synth voices go through the filter; guitar is added dry after,
-           so it stays audible regardless of filter sweep position. */
-        float synth_mix = (v_sq * sq + v_oct * d2 + v_sub * d4) * 0.5f;
+           so it stays audible regardless of filter sweep position.
+           0.18 trim (was 0.5): full-scale squares sat ~15 dB above the dry
+           voice and drove the output clipper — see tools/level_test.c. */
+        float synth_mix = (v_sq * sq + v_oct * d2 + v_sub * d4) * 0.18f;
 
         float filtered;
         if (filter_type == 1) {
