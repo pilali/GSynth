@@ -1,11 +1,12 @@
 name: build
 
-# Builds the JUCE plug-ins on every push to the JUCE branch, on version tags,
-# and on demand. macOS produces universal (arm64 + x86_64) AU/VST3/Standalone;
-# Windows produces VST3/Standalone. Artifacts are downloadable from the run.
+# Builds the JUCE plug-ins on every push to the JUCE branch or to claude/*
+# work branches, on version tags, and on demand. macOS produces universal
+# (arm64 + x86_64) AU/VST3/Standalone; Windows produces VST3/Standalone.
+# Artifacts are downloadable from the run.
 on:
   push:
-    branches: [ JUCE ]
+    branches: [ JUCE, 'claude/**' ]
     tags: [ 'v*' ]
   workflow_dispatch:
 
