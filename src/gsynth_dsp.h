@@ -37,7 +37,8 @@ typedef struct {
     float filter_rate;   /* sweep speed                 [0..1]            */
     float trigger;       /* trigger sensitivity         [0..1]            */
     float filter_type;   /* 0 = SVF (TPT), >0.5 = Moog ladder             */
-    float pitch_track;   /* 0 = flip-flop dividers, >0.5 = YIN tracker     */
+    float pitch_track;   /* 0 = flip-flop dividers, >0.5 = YIN tracker
+                            (ignored when built with -DGSYNTH_NO_YIN)      */
     float input_drive;   /* input FET saturation amount [0..1]            */
 } GSynthParams;
 

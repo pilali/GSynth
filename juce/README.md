@@ -11,7 +11,7 @@ glue differs.
 |------|------|
 | `CMakeLists.txt`    | Build definition; fetches JUCE automatically. macOS builds are universal (arm64 + x86_64) by default. |
 | `PluginProcessor.h/.cpp` | `AudioProcessor` + `AudioProcessorValueTreeState`. Maps the 13 controls onto `GSynthParams` and calls `gsynth_dsp_process`. |
-| `PluginEditor.h/.cpp` | Custom editor + `LookAndFeel` reproducing the MOD modgui look (dark pedal, 13 vertical faders in VOICE MIX / FILTER / MISC groups). |
+| `PluginEditor.h/.cpp` | Custom editor + `LookAndFeel` reproducing the MOD modgui look (dark pedal, 11 vertical faders + 2 toggle switches in VOICE MIX / FILTER / MISC groups). |
 
 The DSP is monophonic (guitar in): inputs are summed to mono, processed once,
 and fanned out to all output channels.
@@ -70,6 +70,6 @@ needed.
 ## Status
 
 - ✅ Processor + parameters wired to the shared core.
-- ✅ Custom editor mirroring the MOD modgui (faders + groups), natively drawn.
+- ✅ Custom editor mirroring the MOD modgui (faders + toggle switches + groups), natively drawn.
 - ✅ macOS universal binaries + Windows builds via CI.
 - ⬜ Code-signing / notarization for distribution (Apple Developer ID).

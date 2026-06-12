@@ -13,7 +13,9 @@
  *   - Flip-flops T diviseurs /2 et /4 -> OCTAVE (-1) et SUB OCTAVE (-2)
  *     (utilisés si pitch_track = 0)
  *   - YIN-style pitch tracker + oscillateurs carrés synchronisés
- *     (si pitch_track = 1)
+ *     (si pitch_track = 1 ; omis avec -DGSYNTH_NO_YIN — cf. build MOD Dwarf,
+ *     dont le CPU ne suit pas — pitch_track est alors ignoré et la voie
+ *     flip-flop est toujours utilisée)
  *   - Sweep generator : Attack Delay puis rampe vers Stop
  *   - VCF passe-bas, deux topologies :
  *       * SVF TPT (Zavalishin) — propre, neutre
@@ -34,10 +36,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef GSYNTH_NO_YIN
 #define YIN_THRESHOLD 0.12f
 #define YIN_F_MIN_HZ   60.0f
 #define YIN_F_MAX_HZ 2000.0f
 #define YIN_HOP_MS      5.0f
+#endif
 
 struct GSynthDsp {
     double sr;
@@ -64,6 +68,7 @@ struct GSynthDsp {
     /* Moog ladder */
     float ladder_y[4];
 
+#ifndef GSYNTH_NO_YIN
     /* YIN pitch tracker */
     float*   yin_buf;
     uint32_t yin_buf_size;
@@ -83,6 +88,7 @@ struct GSynthDsp {
     float phase_pitch;
     float phase_sub;
     float phase_sub2;
+#endif
 };
 
 /* -------------------------------------------------------------------------- */
@@ -131,6 +137,8 @@ static inline float fet_saturate(float x, float drive)
     float k    = 1.0f / (pre * (1.0f - th_b * th_b));
     return y * k;
 }
+
+#ifndef GSYNTH_NO_YIN
 
 static uint32_t next_pow2(uint32_t v)
 {
@@ -218,6 +226,8 @@ static void yin_process(GSynthDsp* self, float x)
     self->yin_voiced = 1;
 }
 
+#endif /* !GSYNTH_NO_YIN */
+
 /* -------------------------------------------------------------------------- */
 /* Moog ladder (Stilson/Smith)                                                */
 /* -------------------------------------------------------------------------- */
@@ -283,6 +293,7 @@ GSynthDsp* gsynth_dsp_new(double sample_rate)
     self->prev_div2  = 1.0f;
     self->sweep      = 1.0f;
 
+#ifndef GSYNTH_NO_YIN
     self->yin_tau_min = (uint32_t)(sample_rate / YIN_F_MAX_HZ);
     self->yin_tau_max = (uint32_t)(sample_rate / YIN_F_MIN_HZ);
     if (self->yin_tau_min < 2) self->yin_tau_min = 2;
@@ -303,6 +314,7 @@ GSynthDsp* gsynth_dsp_new(double sample_rate)
 
     self->yin_f0          = 110.0f;
     self->yin_f0_smoothed = 110.0f;
+#endif
 
     return self;
 }
@@ -310,9 +322,11 @@ GSynthDsp* gsynth_dsp_new(double sample_rate)
 void gsynth_dsp_free(GSynthDsp* self)
 {
     if (self) {
+#ifndef GSYNTH_NO_YIN
         free(self->yin_buf);
         free(self->yin_d);
         free(self->yin_work);
+#endif
         free(self);
     }
 }
@@ -327,11 +341,13 @@ void gsynth_dsp_reset(GSynthDsp* self)
     self->sweeping = 0;
     self->svf_ic1eq = self->svf_ic2eq = 0.0f;
     self->ladder_y[0] = self->ladder_y[1] = self->ladder_y[2] = self->ladder_y[3] = 0.0f;
+#ifndef GSYNTH_NO_YIN
     self->phase_pitch = self->phase_sub = self->phase_sub2 = 0.0f;
     self->yin_pos = 0;
     self->yin_hop_counter = 0;
     self->yin_voiced = 0;
     if (self->yin_buf) memset(self->yin_buf, 0, self->yin_buf_size * sizeof(float));
+#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -354,7 +370,9 @@ void gsynth_dsp_process(GSynthDsp* self, const GSynthParams* p,
     const float trig_sens  = clampf(p->trigger,    0.0f, 1.0f);
 
     const int   filter_type = (p->filter_type > 0.5f) ? 1 : 0;
+#ifndef GSYNTH_NO_YIN
     const int   pitch_track = (p->pitch_track > 0.5f) ? 1 : 0;
+#endif
     const float input_drive = clampf(p->input_drive, 0.0f, 1.0f);
 
     const float sr = (float)self->sr;
@@ -410,6 +428,7 @@ void gsynth_dsp_process(GSynthDsp* self, const GSynthParams* p,
         /* voies synthétiques */
         float sq, d2, d4;
 
+#ifndef GSYNTH_NO_YIN
         if (pitch_track) {
             yin_process(self, x);
 
@@ -432,7 +451,9 @@ void gsynth_dsp_process(GSynthDsp* self, const GSynthParams* p,
             sq = (self->phase_pitch < 0.5f) ?  1.0f : -1.0f;
             d2 = (self->phase_sub   < 0.5f) ?  1.0f : -1.0f;
             d4 = (self->phase_sub2  < 0.5f) ?  1.0f : -1.0f;
-        } else {
+        } else
+#endif
+        {
             float schmitt_th = 0.10f * self->env + 1e-4f;
             if (self->sq_state > 0.0f) {
                 if (x < -schmitt_th) self->sq_state = -1.0f;

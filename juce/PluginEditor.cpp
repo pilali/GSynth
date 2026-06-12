@@ -1,14 +1,17 @@
 #include "PluginEditor.h"
 
 namespace {
-struct FaderDef { const char* id; const char* label; };
+// A control cell: a vertical fader by default, or — when onText/offText are
+// set — a two-state toggle switch (drawn by drawToggleButton).
+struct ControlDef { const char* id; const char* label; const char* onText; const char* offText; };
 
 // Same controls, order and grouping as the MOD modgui.
-const std::vector<std::vector<FaderDef>> kGroups = {
+const std::vector<std::vector<ControlDef>> kGroups = {
     { { "guitar", "GTR" }, { "octave", "OCT" }, { "sub_octave", "SUB" }, { "square", "SQR" } },
     { { "trigger", "TRIG" }, { "attack_delay", "ATCK" }, { "start_freq", "STRT" },
       { "stop_freq", "STOP" }, { "resonance", "RES" }, { "filter_rate", "RATE" } },
-    { { "input_drive", "DRV" }, { "filter_type", "FILT" }, { "pitch_track", "PTCH" } },
+    { { "input_drive", "DRV" }, { "filter_type", "FILT", "LDR", "SVF" },
+      { "pitch_track", "PTCH", "YIN", "FF" } },
 };
 const char* kGroupNames[3] = { "VOICE MIX", "FILTER", "MISC" };
 
@@ -81,6 +84,62 @@ void GSynthLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int wi
     g.drawRoundedRectangle(cap, 4.0f, 1.0f);
 }
 
+void GSynthLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& b,
+                                         bool, bool)
+{
+    const auto bounds = b.getLocalBounds().toFloat();
+    const float cx = bounds.getCentreX();
+    const float cy = bounds.getCentreY();
+
+    // --- rocker track, same groove colour as the fader track ---
+    const float trackW = 26.0f;
+    const float trackH = 64.0f;
+    juce::Rectangle<float> track(cx - trackW * 0.5f, cy - trackH * 0.5f, trackW, trackH);
+
+    g.setColour(kGroove);
+    g.fillRoundedRectangle(track, trackW * 0.5f);
+    g.setColour(juce::Colours::black.withAlpha(0.55f));
+    g.drawRoundedRectangle(track.reduced(0.5f), trackW * 0.5f, 1.0f);
+
+    const bool on = b.getToggleState();
+
+    // --- thumb, same glossy silver family as the fader cap ---
+    const float thumbH = 28.0f;
+    juce::Rectangle<float> thumb(track.getX() + 3.0f,
+                                 on ? track.getY() + 3.0f
+                                    : track.getBottom() - thumbH - 3.0f,
+                                 trackW - 6.0f, thumbH);
+
+    g.setColour(juce::Colours::black.withAlpha(0.45f));
+    g.fillRoundedRectangle(thumb.translated(0.0f, 1.5f), 10.0f);
+
+    juce::ColourGradient grad(juce::Colour(0xffbebebe), 0.0f, thumb.getY(),
+                              juce::Colour(0xff2a2a2a), 0.0f, thumb.getBottom(), false);
+    grad.addColour(0.18, juce::Colour(0xff707070));
+    grad.addColour(0.55, juce::Colour(0xff5a5a5a));
+    g.setGradientFill(grad);
+    g.fillRoundedRectangle(thumb, 10.0f);
+
+    g.setColour(juce::Colour(0xff141414));
+    g.drawRoundedRectangle(thumb, 10.0f, 1.0f);
+
+    // --- state labels above/below the track, active one lit ---
+    const auto onText  = b.getProperties().getWithDefault("onText",  "ON").toString();
+    const auto offText = b.getProperties().getWithDefault("offText", "OFF").toString();
+
+    g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f).withStyle("Bold")));
+    g.setColour(kText.withAlpha(on ? 0.85f : 0.30f));
+    g.drawText(onText,
+               juce::Rectangle<float>(bounds.getX(), track.getY() - 20.0f,
+                                      bounds.getWidth(), 14.0f),
+               juce::Justification::centred, false);
+    g.setColour(kText.withAlpha(on ? 0.30f : 0.85f));
+    g.drawText(offText,
+               juce::Rectangle<float>(bounds.getX(), track.getBottom() + 6.0f,
+                                      bounds.getWidth(), 14.0f),
+               juce::Justification::centred, false);
+}
+
 // ===========================================================================
 //  Editor
 // ===========================================================================
@@ -93,12 +152,26 @@ GSynthAudioProcessorEditor::GSynthAudioProcessorEditor(GSynthAudioProcessor& p)
     {
         for (const auto& def : group)
         {
-            auto slider = std::make_unique<juce::Slider>(juce::Slider::LinearVertical,
-                                                         juce::Slider::NoTextBox);
-            slider->setDoubleClickReturnValue(true, 0.0);
-            addAndMakeVisible(*slider);
-            attachments.push_back(
-                std::make_unique<SliderAttachment>(processorRef.apvts, def.id, *slider));
+            std::unique_ptr<juce::Component> control;
+            if (def.onText != nullptr)
+            {
+                auto button = std::make_unique<juce::ToggleButton>();
+                button->getProperties().set("onText",  juce::String(def.onText));
+                button->getProperties().set("offText", juce::String(def.offText));
+                buttonAttachments.push_back(
+                    std::make_unique<ButtonAttachment>(processorRef.apvts, def.id, *button));
+                control = std::move(button);
+            }
+            else
+            {
+                auto slider = std::make_unique<juce::Slider>(juce::Slider::LinearVertical,
+                                                             juce::Slider::NoTextBox);
+                slider->setDoubleClickReturnValue(true, 0.0);
+                sliderAttachments.push_back(
+                    std::make_unique<SliderAttachment>(processorRef.apvts, def.id, *slider));
+                control = std::move(slider);
+            }
+            addAndMakeVisible(*control);
 
             auto label = std::make_unique<juce::Label>(juce::String(), def.label);
             label->setJustificationType(juce::Justification::centred);
@@ -107,7 +180,7 @@ GSynthAudioProcessorEditor::GSynthAudioProcessorEditor(GSynthAudioProcessor& p)
             label->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(*label);
 
-            sliders.push_back(std::move(slider));
+            controls.push_back(std::move(control));
             labels.push_back(std::move(label));
         }
     }
@@ -131,9 +204,9 @@ void GSynthAudioProcessorEditor::resized()
     auto groupLabelRow = body.removeFromBottom(kGroupLblH);
     faderArea = body;
 
-    const int nFaders   = (int) sliders.size();   // 13
+    const int nControls = (int) controls.size();   // 13
     const int nGaps     = (int) kGroups.size() - 1;
-    const int cellW     = (body.getWidth() - nGaps * kGroupGap) / nFaders;
+    const int cellW     = (body.getWidth() - nGaps * kGroupGap) / nControls;
 
     int runX = body.getX();
     int idx  = 0;
@@ -144,7 +217,7 @@ void GSynthAudioProcessorEditor::resized()
         {
             juce::Rectangle<int> cell(runX, body.getY(), cellW, body.getHeight());
             auto labelCell = cell.removeFromBottom(kShortLblH);
-            sliders[(size_t) idx]->setBounds(cell.reduced(2, 0));
+            controls[(size_t) idx]->setBounds(cell.reduced(2, 0));
             labels[(size_t) idx]->setBounds(labelCell);
             runX += cellW;
         }

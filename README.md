@@ -29,6 +29,10 @@ sudo make install          # installs to /usr/local/lib/lv2/gsynth.lv2
 
 Set `WITH_MODGUI=0` to install without the (optional) MOD GUI.
 
+Set `WITH_YIN=0` to compile out the YIN pitch tracker (CPU heavier) — the
+*Pitch Track* parameter is then ignored and the flip-flop voicing is always
+used. This is what the MOD Dwarf recipe does (see below).
+
 ---
 
 ## Build for MOD with mod-plugin-builder
@@ -48,6 +52,13 @@ environment in place, copy the provided recipe from
 
 The recipe pins the source revision via `GSYNTH_VERSION`; bump it to the latest
 commit after a significant change.
+
+The provided recipe targets the **MOD Dwarf**, whose CPU cannot afford the YIN
+pitch tracker: it builds with `WITH_YIN=0` and removes the *Pitch Track* switch
+from the MOD GUI (the port itself is kept, hidden via `pprops:notOnGUI`, so
+port indices/symbols — and therefore pedalboards — stay compatible with the
+standard build). For a platform that can run YIN, drop the `WITH_YIN=0` and
+the `sed` lines from `gsynth.mk` to get the full-featured plugin.
 
 ---
 

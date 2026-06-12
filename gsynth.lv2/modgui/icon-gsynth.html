@@ -111,18 +111,26 @@
                         </div>
                         <span class="gs-label">DRV</span>
                     </div>
-                    <div class="gs-slider">
-                        <div class="mod-slider">
-                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="filter_type"></div>
+                    <div class="gs-switch">
+                        <div class="gs-switch-body">
+                            <span class="gs-switch-state gs-switch-state-on">LDR</span>
+                            <div class="gs-switch-toggle" mod-role="input-control-port" mod-widget="switch" mod-port-symbol="filter_type"></div>
+                            <span class="gs-switch-state gs-switch-state-off">SVF</span>
                         </div>
                         <span class="gs-label">FILT</span>
                     </div>
-                    <div class="gs-slider">
-                        <div class="mod-slider">
-                            <div class="mod-slider-image" mod-role="input-control-port" mod-port-symbol="pitch_track"></div>
+                    <!-- GSYNTH_NO_YIN_BEGIN — this block is stripped by the MOD
+                         Dwarf build (gsynth.mk), whose plugin is compiled
+                         without the YIN pitch tracker. -->
+                    <div class="gs-switch">
+                        <div class="gs-switch-body">
+                            <span class="gs-switch-state gs-switch-state-on">YIN</span>
+                            <div class="gs-switch-toggle" mod-role="input-control-port" mod-widget="switch" mod-port-symbol="pitch_track"></div>
+                            <span class="gs-switch-state gs-switch-state-off">FF</span>
                         </div>
                         <span class="gs-label">PTCH</span>
                     </div>
+                    <!-- GSYNTH_NO_YIN_END -->
                 </div>
                 <div class="gs-group-label">MISC</div>
             </div>

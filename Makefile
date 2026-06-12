@@ -33,6 +33,16 @@ LV2DIR ?= $(PREFIX)/lib/lv2
 # Set WITH_MODGUI=0 to install the plugin without the (optional) MOD GUI.
 WITH_MODGUI ?= 1
 
+# Set WITH_YIN=0 to compile out the YIN pitch tracker (CPU heavier) — used by
+# the MOD Dwarf build (plugins/packages/gsynth/gsynth.mk), whose CPU cannot
+# afford it. The pitch_track port stays in place (indices/symbols unchanged)
+# but is ignored: the Schmitt/flip-flop path is always used. gsynth.mk also
+# hides the port from the modgui at install time.
+WITH_YIN ?= 1
+ifeq ($(WITH_YIN),0)
+override CFLAGS += -DGSYNTH_NO_YIN
+endif
+
 all: $(SO)
 
 $(SO): $(SRC) $(HDR) | $(BUNDLE)
